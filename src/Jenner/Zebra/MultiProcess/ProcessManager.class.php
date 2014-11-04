@@ -7,7 +7,7 @@
  *
  */
 
-namespace Zebra\MultiProcess;
+namespace Jenner\Zebra\MultiProcess;
 declare(ticks = 1);
 
 class RuntimeException extends \Exception{}
