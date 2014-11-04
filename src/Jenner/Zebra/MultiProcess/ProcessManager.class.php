@@ -14,7 +14,6 @@ class RuntimeException extends \Exception{}
 
 class ProcessManager
 {
-
     /** @var array|Process */
     protected $children = array();
 
