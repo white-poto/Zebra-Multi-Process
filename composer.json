@@ -3,7 +3,7 @@
     "description": "multi process wrapper",
     "license": "MIT",
     "keywords": ["message queue"],
-    "version": "v1.0.0",
+    "version": "v1.2.0",
     "authors": [
         {
             "name": "Jenner",
