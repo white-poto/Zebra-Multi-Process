@@ -1,9 +1,9 @@
 {
     "name": "jenner/multi_process",
-    "description": "php message queue wrapper",
+    "description": "multi process wrapper",
     "license": "MIT",
     "keywords": ["message queue"],
-    "version": "1.0.0",
+    "version": "v1.0.0",
     "authors": [
         {
             "name": "Jenner",

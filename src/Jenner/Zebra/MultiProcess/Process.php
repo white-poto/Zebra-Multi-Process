@@ -8,6 +8,8 @@
  */
 namespace Jenner\Zebra\MultiProcess;
 
+use \Jenner\Zebra\Ipcs\SHMCache;
+
 class Process
 {
 
@@ -44,7 +46,7 @@ class Process
     // Methods for ProcessManager
 
     public function setPid($pid)                 { $this->pid = $pid;         }
-    public function setSHMSegment(\Zebra\Ipcs\SHMCache $shm) { $this->shmSegment = $shm;  }
+    public function setSHMSegment(SHMCache $shm) { $this->shmSegment = $shm;  }
     public function setStarted($started=true)    { $this->started = $started; }
     public function setFinished($finished=true, $status=null)
     {
