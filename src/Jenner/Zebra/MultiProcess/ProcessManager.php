@@ -86,7 +86,7 @@ class ProcessManager
                     throw new RuntimeException('set group_name failed. are you sure you have the privileges?');
                 }
             }
-            
+
             $children->run();
             exit; // redundant, added only for clarity
         } // Main process
