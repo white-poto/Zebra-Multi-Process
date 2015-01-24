@@ -10,7 +10,9 @@
 namespace Jenner\Zebra\MultiProcess;
 declare(ticks = 1);
 
-class RuntimeException extends \Exception{}
+class RuntimeException extends \Exception
+{
+}
 
 class ProcessManager
 {
@@ -29,11 +31,9 @@ class ProcessManager
 
     public function cleanup()
     {
-        foreach($this->children as $process)
-        {
+        foreach ($this->children as $process) {
             $segment = $process->getShmSegment();
-            if($segment)
-            {
+            if ($segment) {
                 $segment->destroy();
             }
         }
@@ -41,23 +41,21 @@ class ProcessManager
 
     public function cleanupOnShutdown()
     {
-        if(!$this->cleanupOnShutdown)
-        {
+        if (!$this->cleanupOnShutdown) {
             $this->cleanupOnShutdown = true;
-            \register_shutdown_function(array($this, 'cleanup'));
+            register_shutdown_function(array($this, 'cleanup'));
         }
     }
 
     protected function setup()
     {
-        \pcntl_signal(SIGCHLD, function($signal) {
-            while(($pId = \pcntl_waitpid(-1, $status, WNOHANG)) > 0 )
-            {
+        pcntl_signal(SIGCHLD, function ($signal) {
+            while (($pId = pcntl_waitpid(-1, $status, WNOHANG)) > 0) {
                 $this->getChildByPID($pId)->setFinished(true, $status);
             }
         });
-        
-        $exit = function() {
+
+        $exit = function () {
             exit;
         };
 
@@ -65,38 +63,41 @@ class ProcessManager
         //pcntl_signal(SIGINT,  $exit);
     }
 
-    public function fork(Process $children)
+    public function fork(Process $children, $user_name = null, $group_name = null)
     {
-        if($this->allocateSHMPerChildren())
-        {
-            $children->setSHMSegment(new \Zebra\Ipcs\SHMCache(\uniqid('process_manager;shm_per_children'.$children->getInternalId()), $this->allocateSHMPerChildren));
+        if ($this->allocateSHMPerChildren()) {
+            $children->setSHMSegment(new SHMCache(uniqid('process_manager;shm_per_children' . $children->getInternalId()), $this->allocateSHMPerChildren));
         }
 
-        \pcntl_sigprocmask(SIG_BLOCK, array(SIGCHLD));
-        $pid = \pcntl_fork();
+        pcntl_sigprocmask(SIG_BLOCK, array(SIGCHLD));
+        $pid = pcntl_fork();
         // Error
-        if($pid == -1)
-        {
+        if ($pid == -1) {
             throw new RuntimeException('pcntl_fork() returned -1, are you sure you are running the script from CLI?');
-        }
+        } // Child process
+        else if (!$pid) {
+            if(!is_null($user_name)){
+                if(!$this->setUser($user_name))
+                    throw new RuntimeException('set user_name failed. are you sure you have the privileges?');
 
-        // Child process
-        else if(!$pid)
-        {
+            }
+            if(!is_null($group_name)){
+                if(!$this->setGroup($group_name)){
+                    throw new RuntimeException('set group_name failed. are you sure you have the privileges?');
+                }
+            }
+            
             $children->run();
             exit; // redundant, added only for clarity
-        }
-
-        // Main process
-        else
-        {
+        } // Main process
+        else {
             $children->setStarted(true);
 
             $this->children[] = $children;
 
             // Store the children's PID
             $children->setPid($pid);
-            \pcntl_sigprocmask(SIG_UNBLOCK, array(SIGCHLD));
+            pcntl_sigprocmask(SIG_UNBLOCK, array(SIGCHLD));
         }
     }
 
@@ -106,10 +107,8 @@ class ProcessManager
      */
     public function getChildByPID($pid)
     {
-        foreach($this->children as $process)
-        {
-            if($process->getPid() == $pid)
-            {
+        foreach ($this->children as $process) {
+            if ($process->getPid() == $pid) {
                 return $process;
             }
         }
@@ -123,10 +122,8 @@ class ProcessManager
      */
     public function getChildByInternalId($InternalId)
     {
-        foreach($this->children as $process)
-        {
-            if($process->getInternalId() == $InternalId)
-            {
+        foreach ($this->children as $process) {
+            if ($process->getInternalId() == $InternalId) {
                 return $process;
             }
         }
@@ -137,11 +134,9 @@ class ProcessManager
     public function countAliveChildren()
     {
         $alive = 0;
-        foreach($this->children as $process)
-        {
+        foreach ($this->children as $process) {
             /** @var $process Process */
-            if($process->isAlive())
-            {
+            if ($process->isAlive()) {
                 ++$alive;
             }
         }
@@ -157,13 +152,28 @@ class ProcessManager
         return $this->children;
     }
 
-    public function allocateSHMPerChildren($bytes=null)
+    public function allocateSHMPerChildren($bytes = null)
     {
-        if($bytes !== null)
-        {
+        if ($bytes !== null) {
             $this->allocateSHMPerChildren = $bytes;
         }
         return $this->allocateSHMPerChildren;
+    }
+
+    public function setUser($user_name)
+    {
+        $user_info = posix_getpwnam($user_name);
+        $user_id = $user_info["uid"];
+
+        return posix_setuid($user_id);
+    }
+
+    public function setGroup($group_name)
+    {
+        $group_info = posix_getgrnam($group_name);
+        $group_id = $group_info['gid'];
+
+        return posix_setgid($group_id);
     }
 
 }
