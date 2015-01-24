@@ -76,17 +76,16 @@ class ProcessManager
             throw new RuntimeException('pcntl_fork() returned -1, are you sure you are running the script from CLI?');
         } // Child process
         else if (!$pid) {
-            if(!is_null($user_name)){
-                if(!$this->setUser($user_name))
-                    throw new RuntimeException('set user_name failed. are you sure you have the privileges?');
-
-            }
             if(!is_null($group_name)){
                 if(!$this->setGroup($group_name)){
                     throw new RuntimeException('set group_name failed. are you sure you have the privileges?');
                 }
             }
-            
+            if(!is_null($user_name)){
+                if(!$this->setUser($user_name))
+                    throw new RuntimeException('set user_name failed. are you sure you have the privileges?');
+
+            }
             $children->run();
             exit; // redundant, added only for clarity
         } // Main process
@@ -172,7 +171,7 @@ class ProcessManager
     {
         $group_info = posix_getgrnam($group_name);
         $group_id = $group_info['gid'];
-
+        
         return posix_setgid($group_id);
     }
 

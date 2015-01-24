@@ -1,14 +1,12 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: huyanping
+ * User: Jenner
  * Date: 14-8-24
  * Time: 下午14:28
  *
  */
 namespace Jenner\Zebra\MultiProcess;
-
-use \Jenner\Zebra\Ipcs\SHMCache;
 
 class Process
 {
