@@ -86,7 +86,6 @@ class ProcessManager
                     throw new RuntimeException('set group_name failed. are you sure you have the privileges?');
                 }
             }
-
             $children->run();
             exit; // redundant, added only for clarity
         } // Main process
@@ -172,7 +171,7 @@ class ProcessManager
     {
         $group_info = posix_getgrnam($group_name);
         $group_id = $group_info['gid'];
-
+        
         return posix_setgid($group_id);
     }
 
